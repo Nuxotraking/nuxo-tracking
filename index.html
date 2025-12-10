@@ -1,99 +1,122 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Seguimiento de Pedido - NUXO</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background-color: #111;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #000;
       padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      letter-spacing: 2px;
+      font-weight: bold;
     }
     .container {
       max-width: 500px;
-      margin: auto;
-      background: white;
+      margin: 40px auto;
+      background-color: #1a1a1a;
       padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
     }
-    h2 {
+    .container h2 {
       text-align: center;
       margin-bottom: 20px;
-      color: #222;
     }
-    input {
+    input[type="text"] {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 5px;
+      border: none;
+      margin-bottom: 15px;
     }
     button {
       width: 100%;
       padding: 12px;
-      background: black;
-      color: white;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      background-color: #e91e63;
+      color: white;
       font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #c2185b;
     }
     .result {
-      margin-top: 25px;
-      background: #fafafa;
+      margin-top: 20px;
+      background-color: #222;
       padding: 15px;
-      border-radius: 10px;
+      border-radius: 8px;
+      display: none;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 14px;
+      opacity: 0.6;
     }
   </style>
 </head>
 <body>
+  <header><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABmYAAAgACAYAAAA8KIwBAAAQAElEQVR4Aezd6XbcRpYt4ABniqRETSQ1yxpsyXaXXdU/+v3f51a3" alt="NUXO Logo" style="max-width:200px;"/><div>Seguimiento de Pedido</div></header>
 
-<div class="container">
-  <h2>Seguimiento de Pedido<br>NUXO</h2>
+  <div class="container">
+    <h2>Ingresa tu número de pedido</h2>
+    <input type="text" id="orderInput" placeholder="Ejemplo: NUXO-00123" />
+    <button onclick="buscarPedido()">Buscar</button>
 
-  <input type="text" id="orderInput" placeholder="Ingresa tu número de pedido">
-  <button onclick="buscarPedido()">Consultar</button>
+    <div class="result" id="resultBox">
+      <h3>Estado del Pedido</h3>
+      <p id="estado"></p>
+      <p id="fecha"></p>
+      <p id="mensaje"></p>
+    </div>
+  </div>
 
-  <div id="result" class="result"></div>
-</div>
+  <div class="footer">© 2025 NUXO. Todos los derechos reservados.</div>
 
-<script>
-async function buscarPedido() {
-  const orderNumber = document.getElementById("orderInput").value.trim();
+  <script>
+    // CONSULTA REAL A GOOGLE SHEETS
+    async function buscarPedido() {
+      const codigo = document.getElementById("orderInput").value.trim();
+      const resultBox = document.getElementById("resultBox");
 
-  if (!orderNumber) {
-    document.getElementById("result").innerHTML = "<b>Por favor ingresa un número de pedido.</b>";
-    return;
-  }
+      if (!codigo) return;
 
-  const url = "https://script.google.com/macros/s/AKfycbz4Usno_sxCEJm-3pYon92IzKJcbSUfQY3Q2H81BPJ7FZTMgNoJGTdBJHjMKA_awnCK/exec";
+      try {
+        const url = "https://script.google.com/macros/s/AKfycbynnqYOFb9b9nCwS38PYmn-thYNR1fQBPWg2fZ7hieHMD_VNdOsCjk9i4J8flDn3Adp/exec?pedido=" + codigo;
+        const respuesta = await fetch(url);
+        const data = await respuesta.json();
 
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
+        if (data.error) {
+          document.getElementById("estado").innerText = "No encontramos tu pedido.";
+          document.getElementById("fecha").innerText = "";
+          document.getElementById("mensaje").innerText = "Verifica el código o contáctanos.";
+        } else {
+          document.getElementById("estado").innerText = "Estado: " + data.estado;
+          document.getElementById("fecha").innerText = "Actualizado: " + data.fecha;
+          document.getElementById("mensaje").innerText = data.mensaje;
+        }
 
-    const pedido = data.find(item => item.pedido == orderNumber);
+        resultBox.style.display = "block";
 
-    if (!pedido) {
-      document.getElementById("result").innerHTML = "<b>No se encontró este pedido.</b>";
-      return;
+      } catch (e) {
+        document.getElementById("estado").innerText = "Error al consultar el pedido.";
+        document.getElementById("fecha").innerText = "";
+        document.getElementById("mensaje").innerText = "Vuelve a intentarlo en unos minutos.";
+        resultBox.style.display = "block";
+      }
     }
-
-    document.getElementById("result").innerHTML = `
-      <h3>🔎 Información del Pedido</h3>
-      <p><b>Número:</b> ${pedido.pedido}</p>
-      <p><b>Cliente:</b> ${pedido.cliente}</p>
-      <p><b>Producto:</b> ${pedido.producto}</p>
-      <p><b>Estado:</b> ${pedido.estado}</p>
-      <p><b>Fecha:</b> ${pedido.fecha}</p>
-    `;
-
-  } catch (error) {
-    document.getElementById("result").innerHTML = "<b>Error al consultar el pedido.</b>";
-  }
-}
-</script>
-
+  </script>
 </body>
 </html>
