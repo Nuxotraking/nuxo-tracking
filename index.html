@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Seguimiento de Pedido - NUXO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #222;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .result {
+      margin-top: 25px;
+      background: #fafafa;
+      padding: 15px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Seguimiento de Pedido<br>NUXO</h2>
+
+  <input type="text" id="orderInput" placeholder="Ingresa tu número de pedido">
+  <button onclick="buscarPedido()">Consultar</button>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+async function buscarPedido() {
+  const orderNumber = document.getElementById("orderInput").value.trim();
+
+  if (!orderNumber) {
+    document.getElementById("result").innerHTML = "<b>Por favor ingresa un número de pedido.</b>";
+    return;
+  }
+
+  const url = "https://script.google.com/macros/s/AKfycbz4Usno_sxCEJm-3pYon92IzKJcbSUfQY3Q2H81BPJ7FZTMgNoJGTdBJHjMKA_awnCK/exec";
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const pedido = data.find(item => item.pedido == orderNumber);
+
+    if (!pedido) {
+      document.getElementById("result").innerHTML = "<b>No se encontró este pedido.</b>";
+      return;
+    }
+
+    document.getElementById("result").innerHTML = `
+      <h3>🔎 Información del Pedido</h3>
+      <p><b>Número:</b> ${pedido.pedido}</p>
+      <p><b>Cliente:</b> ${pedido.cliente}</p>
+      <p><b>Producto:</b> ${pedido.producto}</p>
+      <p><b>Estado:</b> ${pedido.estado}</p>
+      <p><b>Fecha:</b> ${pedido.fecha}</p>
+    `;
+
+  } catch (error) {
+    document.getElementById("result").innerHTML = "<b>Error al consultar el pedido.</b>";
+  }
+}
+</script>
+
+</body>
+</html>
